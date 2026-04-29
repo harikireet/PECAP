@@ -1,0 +1,56 @@
+# --- Python ---
+__pycache__/
+*.py[oc]
+*.so
+build/
+dist/
+wheels/
+*.egg-info/
+.installed.cfg
+.pip-deps
+
+# --- Environments ---
+.venv/
+venv/
+env/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+
+# --- OS Artifacts ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# --- Project Specific (Temporary Data) ---
+# Ignore the actual forensic data and uploaded files
+backend/data/events.json
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Ignore forensic logs
+logs/*.log
+
+# --- System Generated (Gemini/AI Artifacts) ---
+.gemini/
+brain/
+tmp/
+
+# our virtual environment
+pcapenv
+
+PCAP.mp4
+
+logs/

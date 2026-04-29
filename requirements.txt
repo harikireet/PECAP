@@ -1,0 +1,22 @@
+# Web Framework - Handles the server, routing, and serving HTML/API endpoints
+flask
+
+# Network Analysis - The core engine for reading and dissecting PCAP files
+scapy
+scapy-http
+
+# Report Generation - Converts forensic findings into downloadable documents
+reportlab      # For generating PDF reports
+python-docx    # For generating Microsoft Word (.docx) reports
+
+# External Services & Geolocation - Used for IP tracking and API communication
+requests       # For making HTTP requests to GeoIP APIs
+geoip2         # For local MaxMind database lookups
+maxminddb      # Dependency for geoip2 to read .mmdb files
+
+# Visualization - Mapping and data plotting
+folium         # For generating interactive geographical maps
+chart-studio   # For advanced data visualization (legacy support)
+
+# Utilities
+setuptools     # For package management and installation
