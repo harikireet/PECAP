@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PCAP StoryTeller{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Main Style -->
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Shared Utilities -->
+    <script src="/static/shared.js"></script>
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <a href="/?new=true" class="brand">
+                <i class="fas fa-shield-halved"></i>
+                <span>PCAP <span>StoryTeller</span></span>
+            </a>
+
+            <div class="nav-links">
+                <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/analytics" class="{% if request.path == '/analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="/threats" class="{% if request.path == '/threats' %}active{% endif %}">
+                    <i class="fas fa-biohazard"></i> Threats
+                </a>
+                <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">
+                    <i class="fas fa-search"></i> Search
+                </a>
+                <a href="/geolocation" class="{% if request.path == '/geolocation' %}active{% endif %}">
+                    <i class="fas fa-globe"></i> Map
+                </a>
+                <a href="/timeline" class="{% if request.path == '/timeline' %}active{% endif %}">
+                    <i class="fas fa-stream"></i> Timeline
+                </a>
+                <a href="/report" class="btn-report">
+                    <i class="fas fa-file-export"></i> Report
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="content-fade">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="glass-footer">
+        <div class="footer-content">
+            <p>&copy; 2024 PCAP StoryTeller - Project for Network Students</p>
+            <div class="footer-socials">
+                <a href="https://github.com/Kaif-T-200" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/kaif-tarasgar-0b5425326/" target="_blank"><i
+                        class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

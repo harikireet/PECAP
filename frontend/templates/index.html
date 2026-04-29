@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PCAP StoryTeller{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.0/vis-timeline-graph2d.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.0/vis-timeline-graph2d.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card upload-area" id="drop-area">
+    <form id="upload-form" enctype="multipart/form-data">
+        <div class="upload-content">
+            <i class="fas fa-file-export upload-icon"
+                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 20px;"></i>
+            <h2 style="margin-bottom: 10px;">Start Your Analysis</h2>
+            <p style="color: var(--text-secondary);">Drag & Drop your PCAP file here or click to browse</p>
+
+            <input type="file" name="file" id="file-input" hidden>
+            <label for="file-input" class="browse-btn"
+                style="margin-top: 20px; display: inline-block; padding: 10px 25px; background: rgba(100, 255, 218, 0.1); border: 1px solid var(--accent-primary); border-radius: 8px; cursor: pointer; color: var(--accent-primary);">Browse
+                Files</label>
+
+            <div id="file-name"
+                style="margin-top: 15px; font-size: 0.9rem; font-style: italic; color: var(--accent-secondary);">No file
+                chosen</div>
+        </div>
+        <button type="submit" class="analyze-btn">
+            <i class="fas fa-search"></i> Analyze Traffic
+        </button>
+    </form>
+
+    <div id="loading" style="display:none; margin-top: 20px;">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: var(--accent-secondary);">Processing capture...</p>
+    </div>
+</div>
+
+<div id="dashboard" class="full-width-container" style="display:none; margin-top: 40px;">
+    <div class="main-panel">
+        <div class="glass-card graph-panel" style="height: 800px;">
+            <h2 style="color: var(--accent-primary); margin-bottom: 15px; font-size: 1.2rem;">
+                <i class="fas fa-project-diagram"></i> Attack Graph
+            </h2>
+            <div id="graph" style="height: calc(100% - 40px); background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
+        </div>
+    </div>
+
+    <div class="glass-card" id="details-panel" style="margin-top: 20px;">
+        <h3 style="color: var(--accent-primary); margin-bottom: 15px;">
+            <i class="fas fa-info-circle"></i> Event Details
+        </h3>
+        <pre id="details-content"
+            style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.85rem; border: 1px solid rgba(100, 255, 218, 0.1);">Click an event to see deep-dive details.</pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/script.js"></script>
+{% endblock %}
