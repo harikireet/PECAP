@@ -1,5 +1,5 @@
 /**
- * PCAP StoryTeller - Shared Frontend Utilities
+ * PECAP - Shared Frontend Utilities
  * Centralizes common logic used across all forensic views.
  */
 
