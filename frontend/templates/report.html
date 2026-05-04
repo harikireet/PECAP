@@ -1,36 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}Export Report - PECAP {% endblock %}
+{% block title %}Export Brief — PECAP{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 800px; margin: 0 auto; text-align: center; padding: 60px 40px;">
-    <i class="fas fa-file-invoice"
-        style="font-size: 4rem; color: var(--accent-primary); margin-bottom: 30px; filter: drop-shadow(0 0 15px rgba(100,255,218,0.3));"></i>
+<section class="container">
+    <header class="page-head">
+        <span class="page-head__eyebrow">// PECAP / 07 — EXPORT</span>
+        <h1 class="page-head__title">Export the<br>brief.</h1>
+        <p class="page-head__lead">
+            Generate a presentation-ready document. PDF for sharing,
+            DOCX for editing into a lecture or lab report.
+        </p>
+    </header>
 
-    <h2 style="color: var(--accent-primary); font-size: 2.2rem; margin-bottom: 10px;">Export Forensics Report</h2>
-    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 40px;">
-        Generate a professional executive summary of your network analysis
-    </p>
+    <div class="report-hero">
+        <p class="lead">Two formats. One capture. Pick your medium.</p>
 
-    <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
-        <a href="/report/pdf" target="_blank" class="analyze-btn"
-            style="max-width: 400px; padding: 18px 40px; display: flex; align-items: center; justify-content: center; gap: 15px;">
-            <i class="fas fa-file-pdf" style="font-size: 1.4rem;"></i>
-            <span>Download PDF Document</span>
-        </a>
+        <div class="report-actions">
+            <a href="/report/pdf" target="_blank" class="report-action" id="report-pdf">
+                <span class="report-action__label">&gt; PDF Document</span>
+                <span class="report-action__file" id="report-pdf-file">PECAP_brief.pdf</span>
+            </a>
+            <a href="/report/docx" target="_blank" class="report-action" id="report-docx">
+                <span class="report-action__label">&gt; Word Document</span>
+                <span class="report-action__file" id="report-docx-file">PECAP_brief.docx</span>
+            </a>
+        </div>
 
-        <a href="/report/docx" target="_blank" class="analyze-btn"
-            style="max-width: 400px; padding: 18px 40px; background: rgba(100, 181, 246, 0.1); border: 2px solid var(--accent-secondary); color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; gap: 15px;">
-            <i class="fas fa-file-word" style="font-size: 1.4rem;"></i>
-            <span>Download Word Document</span>
-        </a>
-    </div>
+        <div class="report-preview" aria-hidden="true">
+            <h4>PECAP Forensic Brief</h4>
+            <p>Capture summary &middot; threat verdict &middot; pattern feed &middot; risk ledger</p>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+            <div class="preview-line"></div>
+        </div>
 
-    <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05);">
-        <p style="color: var(--text-secondary); font-size: 0.9rem;">
-            <i class="fas fa-info-circle"></i> Reprts include event counts, detected patterns, and detailed transaction
-            logs.
+        <p class="text-muted" style="margin-top: var(--sp-8); font-size: var(--fs-14);">
+            Reports include event counts, detected patterns, and detailed transaction logs.
         </p>
     </div>
-</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const now = new Date();
+        const stamp = now.toISOString().slice(0, 10).replace(/-/g, '') + '_' +
+            String(now.getHours()).padStart(2, '0') + 'h' +
+            String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('report-pdf-file').textContent = `PECAP_${stamp}.pdf`;
+        document.getElementById('report-docx-file').textContent = `PECAP_${stamp}.docx`;
+    });
+</script>
 {% endblock %}

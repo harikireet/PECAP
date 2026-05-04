@@ -1,76 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PECAP {% endblock %}</title>
+    <title>{% block title %}PECAP — Forensic Console{% endblock %}</title>
+    <meta name="description" content="PECAP — turn raw packet captures into a clear forensic story.">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Theme bootstrap (no flash) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('pecap-theme');
+                if (!t) {
+                    t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        })();
+    </script>
 
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts: Fraunces (display serif), Space Grotesk (body sans), JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
-    <!-- Main Style -->
     <link rel="stylesheet" href="/static/style.css">
 
-    <!-- Shared Utilities -->
-    <script src="/static/shared.js"></script>
+    <script src="/static/shared.js" defer></script>
 
     {% block head %}{% endblock %}
 </head>
 
 <body>
-    <nav class="glass-nav">
-        <div class="nav-container">
-            <a href="/?new=true" class="brand">
-                <i class="fas fa-shield-halved"></i>
-                <span>PECAP <span></span></span>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <div class="route-sweep" id="route-sweep" aria-hidden="true"></div>
+
+    <header class="nav" role="banner">
+        <div class="nav__inner">
+            <a href="/?new=true" class="brand" aria-label="PECAP home">
+                <span class="brand__word"><span class="brand__mark">PE</span>CAP</span>
+                <span class="brand__sub">/ FORENSIC CONSOLE</span>
             </a>
 
-            <div class="nav-links">
-                <a href="/" class="{% if request.path == '/' %}active{% endif %}">
-                    <i class="fas fa-home"></i> Home
+            <nav class="nav__links" aria-label="Primary">
+                <a href="/" class="nav__link {% if request.path == '/' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 11.5 12 4l9 7.5"></path>
+                        <path d="M5 10v10h14V10"></path>
+                        <path d="M10 20v-6h4v6"></path>
+                    </svg>
+                    <span>Home</span>
                 </a>
-                <a href="/analytics" class="{% if request.path == '/analytics' %}active{% endif %}">
-                    <i class="fas fa-chart-line"></i> Analytics
+                <a href="/analytics"
+                    class="nav__link {% if request.path == '/analytics' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 3v18h18"></path>
+                        <path d="M7 15l4-4 3 3 5-6"></path>
+                    </svg>
+                    <span>Analytics</span>
                 </a>
-                <a href="/threats" class="{% if request.path == '/threats' %}active{% endif %}">
-                    <i class="fas fa-biohazard"></i> Threats
+                <a href="/threats"
+                    class="nav__link {% if request.path == '/threats' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3 4 6v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V6l-8-3z"></path>
+                    </svg>
+                    <span>Threats</span>
                 </a>
-                <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">
-                    <i class="fas fa-search"></i> Search
+                <a href="/search"
+                    class="nav__link {% if request.path == '/search' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-3.5-3.5"></path>
+                    </svg>
+                    <span>Search</span>
                 </a>
-                <a href="/geolocation" class="{% if request.path == '/geolocation' %}active{% endif %}">
-                    <i class="fas fa-globe"></i> Map
+                <a href="/geolocation"
+                    class="nav__link {% if request.path == '/geolocation' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M3 12h18"></path>
+                        <path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path>
+                    </svg>
+                    <span>Map</span>
                 </a>
-                <a href="/timeline" class="{% if request.path == '/timeline' %}active{% endif %}">
-                    <i class="fas fa-stream"></i> Timeline
+                <a href="/timeline"
+                    class="nav__link {% if request.path == '/timeline' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 6h16"></path>
+                        <path d="M4 12h16"></path>
+                        <path d="M4 18h16"></path>
+                    </svg>
+                    <span>Timeline</span>
                 </a>
-                <a href="/report" class="btn-report">
-                    <i class="fas fa-file-export"></i> Report
+                <a href="/report"
+                    class="nav__link {% if request.path == '/report' %}is-active{% endif %}">
+                    <svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 3h7l5 5v13H7z"></path>
+                        <path d="M14 3v5h5"></path>
+                        <path d="M9 13h7"></path>
+                        <path d="M9 17h7"></path>
+                    </svg>
+                    <span>Report</span>
                 </a>
+            </nav>
+
+            <div class="nav__actions">
+                <button class="nav__cmd" id="cmdk-trigger" type="button" aria-label="Open command bar">
+                    <span>Search</span>
+                    <span class="kbd">Ctrl K</span>
+                </button>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path
+                            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41">
+                        </path>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="content-fade">
-        <div class="container">
-            {% block content %}{% endblock %}
+    <div class="ticker ticker--idle" id="meta-ticker" aria-live="polite">
+        <div class="ticker__inner">
+            <span class="ticker__cell">
+                <span class="ticker__dot" id="ticker-dot"></span>
+                <span class="ticker__label">Session</span>
+                <span class="ticker__value" id="ticker-status">Idle</span>
+            </span>
+            <span class="ticker__cell">
+                <span class="ticker__label">File</span>
+                <span class="ticker__value" id="ticker-file">—</span>
+            </span>
+            <span class="ticker__cell">
+                <span class="ticker__label">Events</span>
+                <span class="ticker__value tnum" id="ticker-events">0</span>
+            </span>
+            <span class="ticker__cell">
+                <span class="ticker__label">Captured</span>
+                <span class="ticker__value" id="ticker-time">—</span>
+            </span>
         </div>
+    </div>
+
+    <main class="main fade-up" id="main">
+        {% block content %}{% endblock %}
     </main>
 
-    <footer class="glass-footer">
-        <div class="footer-content">
-            <p>&copy; 2026 PECAP Narration - Cyber Security</p>
-            <div class="footer-socials">
-                <a href="" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="" target="_blank"><i
-                        class="fab fa-linkedin"></i></a>
-            </div>
-        </div>
+    <footer class="foot" role="contentinfo">
+        <span>PECAP &middot; v0.9 &middot; BUILD 20260429</span>
+        <span>Forensic Console for security teams</span>
     </footer>
+
+    <!-- Command bar -->
+    <div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="Command bar">
+        <div class="cmdk__panel">
+            <div class="cmdk__input-wrap">
+                <span class="cmdk__prefix">&gt;</span>
+                <input type="text" class="cmdk__input" id="cmdk-input" placeholder="Jump to page or search events…"
+                    autocomplete="off">
+                <span class="cmdk__hint">ESC to close</span>
+            </div>
+            <div class="cmdk__list" id="cmdk-list"></div>
+        </div>
+    </div>
 
     {% block scripts %}{% endblock %}
 </body>

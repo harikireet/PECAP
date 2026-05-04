@@ -1,132 +1,260 @@
 {% extends "base.html" %}
 
-{% block title %}Geolocation - PECAP {% endblock %}
+{% block title %}Global Map — PECAP{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="margin-bottom: 30px; text-align: center;">
-    <h2 style="color: var(--accent-primary); font-size: 1.8rem;"><i class="fas fa-globe-americas"></i> Global Incident
-        Map</h2>
-    <p style="color: var(--text-secondary);">Visualizing packet origins and destinations across the globe</p>
-    <div id="loading-msg" style="margin-top: 15px; color: var(--accent-secondary);">
-        <i class="fas fa-satellite fa-spin"></i> Tracking IP signals...
-    </div>
-</div>
+<section class="container">
+    <header class="page-head">
+        <span class="page-head__eyebrow">// PECAP / 05 — GLOBAL MAP</span>
+        <h1 class="page-head__title">The capture, on<br>a map.</h1>
+        <p class="page-head__lead">
+            Every external IP plotted by ASN geolocation. Hover a pin for ISP,
+            country, and proxy / VPN flags.
+        </p>
+    </header>
 
-<div id="geo-content" style="display:none;">
-    <!-- Map Canvas -->
-    <div class="glass-card"
-        style="height: 600px; padding: 10px; border-radius: 20px; overflow: hidden; margin-bottom: 30px;">
-        <iframe id="map-frame"
-            style="width: 100%; height: 100%; border: none; border-radius: 12px; filter: contrast(1.1) brightness(1.1);"></iframe>
-    </div>
+    <div id="loading-msg" class="loader" style="margin-bottom: var(--sp-8);">tracking IP signals</div>
 
-    <!-- Quick Stats Row -->
-    <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
-        <div class="glass-card" style="text-align: center; padding: 25px;">
-            <i class="fas fa-external-link-alt" style="color: #ff5d8f; font-size: 1.5rem; margin-bottom: 10px;"></i>
-            <h4 style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">External Nodes</h4>
-            <div id="stat-external" style="font-size: 2rem; font-weight: 700; color: var(--accent-primary);">0</div>
+    <div id="geo-content" class="hidden stack-8">
+        <div class="map-shell">
+            <div id="leaflet-map"></div>
         </div>
-        <div class="glass-card" style="text-align: center; padding: 25px;">
-            <i class="fas fa-map-marked-alt"
-                style="color: var(--accent-secondary); font-size: 1.5rem; margin-bottom: 10px;"></i>
-            <h4 style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Countries Detected
-            </h4>
-            <div id="stat-countries" style="font-size: 2rem; font-weight: 700; color: var(--accent-primary);">0</div>
-        </div>
-        <div class="glass-card" style="text-align: center; padding: 25px;">
-            <i class="fas fa-mask" style="color: #ffb86c; font-size: 1.5rem; margin-bottom: 10px;"></i>
-            <h4 style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Proxies/VPNs</h4>
-            <div id="stat-proxies" style="font-size: 2rem; font-weight: 700; color: var(--accent-primary);">0</div>
-        </div>
-    </div>
 
-    <!-- Detailed List Section -->
-    <div class="glass-card">
-        <h3 style="color: var(--accent-primary); margin-bottom: 25px;"><i class="fas fa-database"></i> IP Intelligence
-            Directory</h3>
-        <div id="geo-list"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; max-height: 800px; overflow-y: auto; padding-right: 15px;">
-            <p style="color: var(--text-secondary); text-align: center; grid-column: 1/-1;">No location data available.
-            </p>
+        <div class="geo-stats">
+            <div class="geo-stats__cell">
+                <span class="stat__label">External nodes</span>
+                <div class="stat__value text-accent" id="stat-external" style="font-size: var(--fs-40);">0</div>
+            </div>
+            <div class="geo-stats__cell">
+                <span class="stat__label">Countries detected</span>
+                <div class="stat__value" id="stat-countries" style="font-size: var(--fs-40);">0</div>
+            </div>
+            <div class="geo-stats__cell">
+                <span class="stat__label">Proxy / VPN flags</span>
+                <div class="stat__value text-amber" id="stat-proxies" style="font-size: var(--fs-40);">0</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="row-between" style="margin-bottom: var(--sp-4);">
+                <span class="label label-bracket">IP_DIRECTORY</span>
+                <span class="mono text-subtle">click a row to fly the map</span>
+            </div>
+            <div class="panel">
+                <div style="overflow-x: auto;">
+                    <table class="table" id="geo-table">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>Country</th>
+                                <th>City</th>
+                                <th>ISP</th>
+                                <th>Flags</th>
+                            </tr>
+                        </thead>
+                        <tbody id="geo-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    let map;
+    let baseLayer;
+    let markersLayer;
+    const markersByIp = {};
+
+    function tileUrl() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        return isLight
+            ? 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
+            : 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+    }
+
+    function buildBaseLayer() {
+        return L.tileLayer(tileUrl(), {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19,
+            detectRetina: true,
+            crossOrigin: true
+        });
+    }
+
+    function initMap() {
+        if (map) return;
+        map = L.map('leaflet-map', {
+            zoomControl: true,
+            worldCopyJump: true,
+            attributionControl: true,
+            preferCanvas: true,
+            minZoom: 2,
+            maxZoom: 12,
+            maxBounds: [[-85, -180], [85, 180]],
+            maxBoundsViscosity: 0.8
+        }).setView([20, 0], 2);
+
+        baseLayer = buildBaseLayer().addTo(map);
+        markersLayer = L.layerGroup().addTo(map);
+
+        // Re-measure after the container is visible / window resizes
+        setTimeout(() => map.invalidateSize(), 50);
+        setTimeout(() => map.invalidateSize(), 250);
+        window.addEventListener('resize', () => map.invalidateSize());
+        if (window.ResizeObserver) {
+            new ResizeObserver(() => map && map.invalidateSize()).observe(document.getElementById('leaflet-map'));
+        }
+    }
+
+    function pinIcon(severity, size = 14) {
+        const cls = severity === 'high'
+            ? 'pin pin--signal pin--pulse'
+            : severity === 'med'
+                ? 'pin pin--amber'
+                : 'pin';
+        return L.divIcon({
+            className: 'pin-wrap',
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -size / 2 - 2],
+            html: `<div class="${cls}" style="width:${size}px;height:${size}px;"></div>`
+        });
+    }
+
     async function loadGeoData() {
         try {
             const response = await fetch('/api/geoips');
             const data = await response.json();
 
             if (data.error) {
-                document.getElementById('loading-msg').innerHTML = '<i class="fas fa-exclamation-triangle"></i> PCAP analysis required for map visualization.';
+                document.getElementById('loading-msg').innerHTML =
+                    renderEmpty('No geo data available.', 'Upload a PCAP on the home page first.', '   ___\n  /   \\\n |  ?  |\n  \\___/');
                 return;
             }
 
-            renderStats(data.locations);
-            renderList(data.locations);
-            await renderMap();
+            const externals = (data.locations || []).filter(l => l.type === 'external');
 
-            document.getElementById('geo-content').style.display = 'block';
-            document.getElementById('loading-msg').style.display = 'none';
+            // Reveal the container BEFORE initializing Leaflet so it has dimensions.
+            document.getElementById('geo-content').classList.remove('hidden');
+            document.getElementById('loading-msg').classList.add('hidden');
+
+            // Wait one frame so layout settles, then init.
+            requestAnimationFrame(() => {
+                initMap();
+                renderStats(externals);
+                renderPins(externals);
+                renderTable(externals);
+            });
         } catch (err) {
-            console.error('Geo error:', err);
+            document.getElementById('loading-msg').textContent = 'error loading map';
+            console.error(err);
         }
     }
 
-    function renderStats(locations) {
-        const external = locations.filter(l => l.type === 'external').length;
-        const countries = new Set(locations.filter(l => l.type === 'external' && l.country).map(l => l.country));
-        const proxies = locations.filter(l => l.is_proxy || l.is_hosting).length;
+    function renderStats(externals) {
+        const countries = new Set(
+            externals.filter(l => l.country && l.country !== 'Unknown').map(l => l.country)
+        );
+        const proxies = externals.filter(l => l.is_proxy || l.is_hosting).length;
 
-        document.getElementById('stat-external').textContent = external;
-        document.getElementById('stat-countries').textContent = countries.size;
-        document.getElementById('stat-proxies').textContent = proxies;
+        tickerCount(document.getElementById('stat-external'), externals.length, 600);
+        tickerCount(document.getElementById('stat-countries'), countries.size, 600);
+        tickerCount(document.getElementById('stat-proxies'), proxies, 600);
     }
 
-    async function renderMap() {
-        const response = await fetch('/api/geomap');
-        const mapHtml = await response.text();
-        document.getElementById('map-frame').srcdoc = mapHtml;
+    function renderPins(externals) {
+        if (!markersLayer) return;
+        markersLayer.clearLayers();
+        for (const k in markersByIp) delete markersByIp[k];
+
+        const validPoints = [];
+
+        externals.forEach(loc => {
+            const lat = parseFloat(loc.latitude ?? loc.lat);
+            const lon = parseFloat(loc.longitude ?? loc.lon);
+            if (!isFinite(lat) || !isFinite(lon)) return;
+            if (lat === 0 && lon === 0) return; // null-island guard
+
+            const sev = loc.is_proxy ? 'med' : 'low';
+            const marker = L.marker([lat, lon], {
+                icon: pinIcon(sev),
+                title: loc.ip || ''
+            });
+
+            const popup = `
+                <strong>${escapeHtml(loc.ip || '')}</strong><br>
+                ${escapeHtml(loc.city || '—')}, ${escapeHtml(loc.country || 'Unknown')}<br>
+                <span style="color: var(--paper-400)">${escapeHtml(loc.isp || 'Provider unknown')}</span>
+                ${loc.is_proxy ? '<br><span style="color: var(--amber)">VPN / PROXY</span>' : ''}
+            `;
+            marker.bindPopup(popup, { closeButton: false, offset: [0, -2] });
+            marker.bindTooltip(loc.ip || '', { direction: 'top', offset: [0, -8], opacity: 0.9, className: 'pin-tooltip' });
+            marker.addTo(markersLayer);
+            markersByIp[loc.ip] = marker;
+            validPoints.push([lat, lon]);
+        });
+
+        if (validPoints.length > 0) {
+            const bounds = L.latLngBounds(validPoints);
+            map.fitBounds(bounds, { padding: [60, 60], maxZoom: 6, animate: false });
+        } else {
+            map.setView([20, 0], 2);
+        }
     }
 
-    function renderList(locations) {
-        const geoList = document.getElementById('geo-list');
-        const externalLocs = locations.filter(loc => loc.type === 'external');
+    function renderTable(externals) {
+        const tbody = document.getElementById('geo-tbody');
+        if (externals.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-muted">No external IPs in this capture.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = externals.map(loc => {
+            const flags = [];
+            if (loc.is_proxy) flags.push('<span class="text-amber">VPN/PROXY</span>');
+            if (loc.is_hosting) flags.push('<span class="text-amber">HOSTING</span>');
+            const lat = loc.latitude ?? loc.lat;
+            const lon = loc.longitude ?? loc.lon;
+            const hasGeo = isFinite(parseFloat(lat)) && isFinite(parseFloat(lon));
+            return `
+                <tr data-ip="${escapeHtml(loc.ip)}" ${hasGeo ? '' : 'data-nogeo="1"'}>
+                    <td class="col-mono">${escapeHtml(loc.ip)} ${hasGeo ? '' : '<span class="text-subtle" title="No geolocation">·</span>'}</td>
+                    <td>${escapeHtml(loc.country || '—')}</td>
+                    <td class="col-muted">${escapeHtml(loc.city || '—')}</td>
+                    <td class="col-muted">${escapeHtml(loc.isp || '—')}</td>
+                    <td class="col-muted">${flags.join(' &middot; ') || '—'}</td>
+                </tr>`;
+        }).join('');
 
-        if (externalLocs.length === 0) return;
-
-        geoList.innerHTML = externalLocs.map(loc => `
-            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 20px; border: 1px solid rgba(100, 255, 218, 0.05); position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span style="font-family: 'Fira Code', monospace; color: var(--accent-primary); font-weight: 700; font-size: 1.1rem;">${loc.ip}</span>
-                    <i class="fas fa-map-pin" style="color: #ff5d8f;"></i>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-globe" style="width: 20px; color: var(--accent-secondary);"></i>
-                        <span>${loc.city || 'N/A'}, ${loc.country || 'Unknown'}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-server" style="width: 20px; color: var(--accent-secondary);"></i>
-                        <span style="color: var(--text-secondary); font-size: 0.85rem;">${loc.isp || 'Provider Unknown'}</span>
-                    </div>
-                </div>
-
-                ${loc.is_proxy ? `
-                    <div style="margin-top: 15px; padding: 5px 12px; background: rgba(255, 184, 108, 0.2); border-radius: 20px; color: #ffb86c; font-size: 0.7rem; display: inline-block;">
-                        <i class="fas fa-user-secret"></i> VPN/PROXY DETECTED
-                    </div>
-                ` : ''}
-            </div>
-        `).join('');
+        tbody.querySelectorAll('tr[data-ip]').forEach(tr => {
+            tr.addEventListener('click', () => {
+                const ip = tr.getAttribute('data-ip');
+                const m = markersByIp[ip];
+                if (m) {
+                    map.flyTo(m.getLatLng(), 6, { duration: 0.8 });
+                    m.openPopup();
+                    document.getElementById('leaflet-map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        });
     }
 
-    loadGeoData();
+    document.addEventListener('pecap:theme', () => {
+        if (!map || !baseLayer) return;
+        map.removeLayer(baseLayer);
+        baseLayer = buildBaseLayer().addTo(map);
+    });
+
+    document.addEventListener('DOMContentLoaded', loadGeoData);
 </script>
 {% endblock %}
