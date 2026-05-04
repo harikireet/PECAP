@@ -1,5 +1,6 @@
 # Web Framework - Handles the server, routing, and serving HTML/API endpoints
 flask
+gunicorn       # Production WSGI server (used by Render and other PaaS hosts)
 
 # Network Analysis - The core engine for reading and dissecting PCAP files
 scapy
